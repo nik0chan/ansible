@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Add public key 
+    lineinfile: 
+      dest=/root/.ssh/authorized_keys
+      line="{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"  
+      #  line: "{{lookup('file', '/root/.ssh/id_rsa.pub')}} 
