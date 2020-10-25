@@ -1,0 +1,8 @@
+---
+# defaults file for roles/docker-master
+
+# List of NFS shares
+nfs_share_mounts: []
+
+# Default NFS4 mount options
+nfs_mount_opts: defaults,nfsvers=3,soft,intr
