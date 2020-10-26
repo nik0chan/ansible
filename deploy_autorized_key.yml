@@ -2,6 +2,19 @@
 - hosts: all
   gather_facts: no
   tasks:
+  - name: Create .ssh folder 
+    file:
+      path: /root/.ssh 
+      state: directory 
+
+  - name: Create .ssh file 
+    file: 
+      path: /root/.ssh/authorized_keys
+      owner: root
+      group: root
+      mode: '0600' 
+      state: touch 
+
   - name: Add public key 
     lineinfile: 
       dest=/root/.ssh/authorized_keys

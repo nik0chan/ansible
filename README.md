@@ -17,4 +17,11 @@ Sintax:
 ansible-playbook -i hosts deploy_autorized_key.yml --ask-pass --extra-vars='pubkey="/root/.ssh/id_rsa.pub"'
 ```
 
+docker_master role
+------------------
+
+```
+ansible-playbook [-i hosts] docker-master.yml
+```
+
 

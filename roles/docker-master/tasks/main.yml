@@ -18,15 +18,26 @@
     state: present
   when: ansible_os_family == "Debian"
 
+- name: Create NFS exports file 
+  file: 
+    path: /etc/exports
+    owner: root
+    group: root
+    mode: '0600' 
+    state: touch 
+
+- name: Setup NFS share 
+  lineinfile:
+    dest: /etc/exports 
+    line: "/srv/nfs	/srv/docker	{{NFS_NETWORK}}(rw,no_root_squash,no_subtree_check)"    
+
+- name: Install Docker 
+  shell: curl https://get.docker.com |sudo bash
+
 - name: Start docker service 
   service: 
     name: docker
     state: started
-
-- name: Mount NFS share 
-  lineinfile:
-    dest: /etc/exports 
-    line: "/srv/nfs	/srv/docker	{{NFS_NETWORK}}(rw,no_root_squash,no_subtree_check)"    
 
 # Do not create mountpoint using file, the mount module will create it
 # automatically. This avoids problems where the module tries to change
