@@ -31,16 +31,15 @@
 - name: Mount NFS share
   mount:
     fstype: nfs
-    name: "/srv/docker"
-    opts: "{{ default(nfs_mount_opts) }}"
-    src: "{{NFS_MASTER}}:/srv/nfs"
+    opts: "nfsvers=3,_netdev,soft,intr"
+    src: "{{NFS_SERVER}}:/srv/nfs"
+    path: "/srv/docker"
     state: mounted
-  with_items: "{{ nfs_share_mounts }}"
 
 - name: Add mountpoint on fstab 
   lineinfile:
     dest: /etc/fstab 
-    line: "{{NFS_SERVER}}:/srv/nfs	/srv/docker	nfs	defaults,_netdev,soft,intr	0 0"    
+    line: "{{NFS_SERVER}}:/srv/nfs	/srv/docker	nfs	defaults,nfsvers=3,_netdev,soft,intr	0 0"    
 
 - name: Install Docker 
   shell: curl https://get.docker.com |sudo bash

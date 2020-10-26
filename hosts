@@ -1,0 +1,10 @@
+docker-master ansible_host=34.65.87.57
+docker-worker-1 ansible_host=34.65.150.55
+docker-worker-2 ansible_host=34.65.144.134
+
+[docker-masters] 
+docker-master 
+
+[docker-workers]
+docker-worker-1
+docker-worker-2

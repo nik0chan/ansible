@@ -2,12 +2,6 @@
 - hosts: all
   gather_facts: no
   tasks:
-  - name: Install Python on debian based
-    raw: '[[ -f "/etc/debian_version" ]]; apt-get install -y python'
-
-  - name: Install Python on redhat based
-    raw: '[[ -f "/etc/redhat_release" ]]; apt-get install -y python' 
-
   - name: Create .ssh folder 
     file:
       path: /root/.ssh 

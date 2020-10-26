@@ -1,4 +1,4 @@
-- hosts: docker-master
+- hosts: docker-masters
   vars_prompt: 
   - name: "NFS_NETWORK" 
     private: no

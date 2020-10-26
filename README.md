@@ -14,7 +14,16 @@ hosts                      <- hosts files (optional)
 Sintax: 
 
 ```
-ansible-playbook -i hosts deploy_autorized_key.yml --ask-pass --extra-vars='pubkey="/root/.ssh/id_rsa.pub"'
+ansible-playbook [-i hosts] deploy_autorized_key.yml --ask-pass --extra-vars='pubkey="/root/.ssh/id_rsa.pub"'
+```
+
+Prepare for ansible
+-------------------
+
+Google cloud platform instances are created without minimum python environmen. 
+
+```
+ansible-playbook [-i hosts] pre_ansible.yml
 ```
 
 docker_master role
