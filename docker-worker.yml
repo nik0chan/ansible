@@ -1,0 +1,6 @@
+- hosts: docker-worker
+  vars_prompt: 
+  - name: "NFS_SERVER" 
+    private: no 
+  roles:
+  - role: docker-worker

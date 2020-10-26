@@ -4,7 +4,7 @@
 
 - git:
     repo: "https://github.com/nik0chan/cluster-swarm" 
-    dest: /srv/docker 
+    dest: /srv/nfs 
 
 - name: Install NFS mount utility
   package:
@@ -14,7 +14,7 @@
 
 - name: Install NFS mount utility
   package:
-    pkg: nfs-common
+    pkg: nfs-common,nfs-kernel-server
     state: present
   when: ansible_os_family == "Debian"
 
@@ -29,7 +29,14 @@
 - name: Setup NFS share 
   lineinfile:
     dest: /etc/exports 
-    line: "/srv/nfs	/srv/docker	{{NFS_NETWORK}}(rw,no_root_squash,no_subtree_check)"    
+    line: "/srv/nfs	{{NFS_NETWORK}}(rw,sync,no_subtree_check,sync)"    
+
+
+- name: Start NFS Server 
+  service:
+    name: nfs-kernel-server
+    state: restarted
+    enabled: yes
 
 - name: Install Docker 
   shell: curl https://get.docker.com |sudo bash
@@ -39,18 +46,3 @@
     name: docker
     state: started
 
-# Do not create mountpoint using file, the mount module will create it
-# automatically. This avoids problems where the module tries to change
-# permissions on an existing directory
-
-#- name: Mount NFS share
-#  become: yes
-#  mount:
-#    fstype: nfs
-#    name: "{{ item.path }}"
-#    opts: "{{ item.opts | default(nfs_mount_opts) }}"
-#    src: "{{ item.location }}"
-#    dump: "{{ item.dump | default(omit) }}"
-#    passno: "{{ item.passno | default(omit) }}"
-#    state: mounted
-#  with_items: "{{ nfs_share_mounts }}"

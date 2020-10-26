@@ -1,0 +1,16 @@
+galaxy_info:
+  author: nik0chan@hotmail.com
+  description: Deploy Docker Worker
+  company: 
+  license: BSD
+  min_ansible_version: 2.1
+  platforms:
+  - name: EL
+    versions:
+    - 7
+  - name: Debian
+    versions:
+      - buster
+  galaxy_tags: []
+
+dependencies: []

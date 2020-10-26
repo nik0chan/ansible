@@ -1,6 +1,7 @@
 - hosts: docker-master
   vars_prompt: 
   - name: "NFS_NETWORK" 
+    private: no
 
   roles:
   - role: docker-master

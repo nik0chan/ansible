@@ -1,0 +1,69 @@
+---
+- name: Install Git utility 
+  package: name=git state=latest 
+
+#- git:
+#    repo: "https://github.com/nik0chan/cluster-swarm" 
+#    dest: /srv/docker 
+
+- name: Install NFS mount utility
+  package:
+    name: nfs-utils
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Install NFS mount utility
+  package:
+    pkg: nfs-common
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Create NFS exports file 
+  file: 
+    path: /srv/docker
+    owner: root
+    group: root
+    mode: '0755' 
+    recurse: yes
+    state: directory 
+
+
+- name: Mount NFS share
+  mount:
+    fstype: nfs
+    name: "/srv/docker"
+    opts: "{{ default(nfs_mount_opts) }}"
+    src: "{{NFS_MASTER}}:/srv/nfs"
+    state: mounted
+  with_items: "{{ nfs_share_mounts }}"
+
+- name: Add mountpoint on fstab 
+  lineinfile:
+    dest: /etc/fstab 
+    line: "{{NFS_SERVER}}:/srv/nfs	/srv/docker	nfs	defaults,_netdev,soft,intr	0 0"    
+
+- name: Install Docker 
+  shell: curl https://get.docker.com |sudo bash
+
+- name: Start docker service 
+  service: 
+    name: docker
+    state: started
+
+
+
+# Do not create mountpoint using file, the mount module will create it
+# automatically. This avoids problems where the module tries to change
+# permissions on an existing directory
+
+#- name: Mount NFS share
+#  become: yes
+#  mount:
+#    fstype: nfs
+#    name: "{{ item.path }}"
+#    opts: "{{ item.opts | default(nfs_mount_opts) }}"
+#    src: "{{ item.location }}"
+#    dump: "{{ item.dump | default(omit) }}"
+#    passno: "{{ item.passno | default(omit) }}"
+#    state: mounted
+#  with_items: "{{ nfs_share_mounts }}"
