@@ -2,8 +2,24 @@
 - hosts: all
   gather_facts: no
   tasks:
+  - name: Check Debian based OS 
+    raw: test -e /etc/debian_version
+    changed_when: false
+    failed_when: false
+    register: debian_based 
+   
+  - name: Check	RedHat based OS	
+    raw: test -e /etc/redhat-release
+    changed_when: false 
+    failed_when: false 
+    register: redhat_based
+
   - name: Install Python on debian based
-    raw: '[[ -f "/etc/debian_version" ]]; apt-get install -y python'
+    raw: 'apt-get update && apt-get install -y python'
+    when: debian_based.rc == 0 
 
   - name: Install Python on redhat based
-    raw: '[[ -f "/etc/redhat_release" ]]; yum install -y python' 
+    raw: 'yum -y update && yum install -y python36'
+    when: redhat_based.rc == 0
+ 
+
