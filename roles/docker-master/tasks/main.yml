@@ -64,4 +64,4 @@
     state: directory
 
 - name: Launch Services 
-  shell: "/srv/docker/deploy_services.sh 
+  shell: "/srv/docker/deploy-services.sh" 
