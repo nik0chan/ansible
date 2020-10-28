@@ -34,7 +34,7 @@
 - name: Add mountpoint on fstab 
   lineinfile:
     dest: /etc/fstab 
-    line: "{{NFS_SERVER}}:/srv/nfs	/srv/docker	nfs	defaults,nfsvers=3,_netdev,soft,intr	0 0"    
+    line: "{{NFS_SERVER}}:/srv/docker	/srv/docker	nfs	defaults,nfsvers=3,_netdev,soft,intr	0 0"    
     state: present
 
 - name: Install Docker 

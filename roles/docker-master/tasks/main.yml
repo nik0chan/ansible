@@ -5,7 +5,7 @@
 - name: Get cluster-swarm stuff from GitHub
   git:
     repo: "https://github.com/nik0chan/cluster-swarm" 
-    dest: /srv/nfs 
+    dest: /srv/docker
 
 - name: Install NFS mount utility
   package:
@@ -30,7 +30,7 @@
 - name: Setup NFS share 
   lineinfile:
     dest: /etc/exports 
-    line: "/srv/nfs	{{NFS_NETWORK}}(rw,sync,no_subtree_check,sync)"    
+    line: "/srv/docker	{{NFS_NETWORK}}(rw,sync,no_subtree_check,sync)"    
 
 
 - name: Start NFS Server 
@@ -48,20 +48,20 @@
     state: started
 
 - name: Create Docker swarm
-  shell: "echo '#!/bin/sh' > /srv/nfs/join_swarm.sh | docker swarm init | grep '\\-\\-token'>> /srv/nfs/join_swarm.sh"
+  shell: "echo '#!/bin/sh' > /srv/docker/join_swarm.sh | docker swarm init | grep '\\-\\-token'>> /srv/docker/join_swarm.sh"
 
 - name: Create Docker swarm (2)
   file:
-    path: /srv/nfs/join_swarm.sh
+    path: /srv/docker/join_swarm.sh
     owner: root
     group: root
     mode: '0755'
     state: touch 
     
-#- name: Replace public portainer address
-#  lineinfile: 
-#    dest: /srv/nfs/portainer/stack.yaml 
-#    regexp: '^  - lineinfile:
-#      dest: /tmp/test.txt
-#      regexp: '^replaceme'
-#      line: '{{hos
+- name: Create Portainer data path 
+  file: 
+    path: /srv/docker/portainer/data
+    state: directory
+
+- name: Launch Services 
+  shell: "/srv/docker/deploy_services.sh 
