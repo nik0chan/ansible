@@ -2,7 +2,8 @@
 - name: Install Git utility 
   package: name=git state=latest 
 
-- git:
+- name: Get cluster-swarm stuff from GitHub
+  git:
     repo: "https://github.com/nik0chan/cluster-swarm" 
     dest: /srv/nfs 
 
@@ -46,3 +47,14 @@
     name: docker
     state: started
 
+- name: Create Docker swarm
+  shell: "echo '#!/bin/sh' > /srv/nfs/join_swarm.sh | docker swarm init | grep '\\-\\-token'>> /srv/nfs/join_swarm.sh"
+
+- name: Create Docker swarm (2)
+  file:
+    path: /srv/nfs/join_swarm.sh
+    owner: root
+    group: root
+    mode: '0755'
+    state: touch 
+    
