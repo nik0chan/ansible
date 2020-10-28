@@ -27,7 +27,7 @@
   mount:
     fstype: nfs
     opts: "nfsvers=3,_netdev,soft,intr"
-    src: "{{NFS_SERVER}}:/srv/nfs"
+    src: "{{NFS_SERVER}}:/srv/docker"
     path: "/srv/docker"
     state: mounted
 
