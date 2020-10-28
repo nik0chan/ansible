@@ -58,3 +58,10 @@
     mode: '0755'
     state: touch 
     
+#- name: Replace public portainer address
+#  lineinfile: 
+#    dest: /srv/nfs/portainer/stack.yaml 
+#    regexp: '^  - lineinfile:
+#      dest: /tmp/test.txt
+#      regexp: '^replaceme'
+#      line: '{{hos
