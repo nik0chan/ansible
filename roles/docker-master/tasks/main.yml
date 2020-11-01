@@ -5,12 +5,13 @@
 
 - name: Install Git utility 
   package: name=git state=latest 
-  when: "'git' not int ansible_facts.packages"
+#  when: "'git' not in ansible_facts.packages"
  
 - name: Get cluster-swarm stuff from GitHub
   git:
     repo: "https://github.com/nik0chan/cluster-swarm" 
     dest: /srv/docker
+    force: true
 
 - name: Install NFS mount utility
   package:
@@ -18,7 +19,7 @@
     state: latest
   when: 
     - ansible_os_family == "RedHat" 
-    - "'nfs-utils' not int ansible_facts.packages"
+    - "'nfs-utils' not in ansible_facts.packages"
 
 - name: Install NFS mount utility
   package:
@@ -26,7 +27,6 @@
     state: present
   when: 
     - ansible_os_family == "Debian"
-    - "'nfs-kernel-server' not int ansible_facts.packages"
 
 - name: Create NFS exports file 
   file: 
@@ -40,6 +40,7 @@
   lineinfile:
     dest: /etc/exports 
     line: "/srv/docker	{{NFS_NETWORK}}(rw,sync,no_subtree_check,sync)"    
+    state: present 
 
 - name: Start NFS Server [Debian based OS]
   service:
@@ -57,7 +58,7 @@
 
 - name: Install Docker 
   shell: curl https://get.docker.com |sudo bash
-  when: "'docker' not int ansible_facts.packages"
+  when: "'docker' not in ansible_facts.packages"
 
 - name: Start docker service 
   service: 

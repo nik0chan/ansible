@@ -52,7 +52,7 @@ ansible-playbook [-i hosts] docker-master.yml
 
 # NOTES 
 
-Deploying inscances on Google Cloud Platfom 
+Deploying instances on Google Cloud Platfom 
 
 It's preferable to add public key on "Metadata -> SSH Keys" of your Google Cloud Plattofm to avoid password prompt in favour 
 of  automatization 

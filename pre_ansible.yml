@@ -22,9 +22,8 @@
     raw: 'test -e /usr/bin/python3 || (yum -y update && yum install -y python3)'
     when: redhat_based.rc == 0
 
-  - name: Set python3 as default on redhat based 
+  - name: Set python3 as default 
     raw: 'test -e /usr/bin/python || (ln -s /usr/bin/python3 /usr/bin/python)'
-    when: redhat_based.rc == 0  
 
 #    register: command_result
 #  - name: debug
