@@ -19,10 +19,22 @@
     when: debian_based.rc == 0 
 
   - name: Install Python on redhat based
-    raw: 'yum -y update && yum install -y python36'
+    raw: 'yum -y update && yum install -y python3'
     when: redhat_based.rc == 0
 
-  - name: Set python3 as default on redhat based 
-    raw: 'alternatives --set python /usr/bin/python3'
-    when: redhat_based.rc == 0  
+  - name: Test Python3 alternatie setup  
+    raw: 'alternatives --list | grep python3' 
+    register: python3_exists
+    failed_when: "'unicornio' in python3_exists.stderr" 
+    when: redhat_based.rc == 0
+    
+  - name:
+    raw: 'update-alternatives --install /usr/bin/python python /usr/bin/python3 1'
+    when: "'python3' not in python3_exists.stdout"
+ 
+#     debug: var=python_exists.stdout_lines
+#  - name: Set python3 as default on redhat based 
+#    raw: 'update-alternatives --install /usr/bin/python python /usr/bin/python3 1'
+##    raw: 'alternatives --install /usr/bin/python python /usr/bin/python3 1 && alternatives --set python /usr/bin/python3'
+#    when: redhat_based.rc == 0  
 

@@ -1,7 +1,12 @@
 ---
+- name: Check packages installed on system 
+  package_facts: 
+    manager: "auto"
+
 - name: Install Git utility 
   package: name=git state=latest 
-
+  when: "'git' not int ansible_facts.packages"
+ 
 - name: Get cluster-swarm stuff from GitHub
   git:
     repo: "https://github.com/nik0chan/cluster-swarm" 
@@ -11,13 +16,17 @@
   package:
     name: nfs-utils
     state: latest
-  when: ansible_os_family == "RedHat"
+  when: 
+    - ansible_os_family == "RedHat" 
+    - "'nfs-utils' not int ansible_facts.packages"
 
 - name: Install NFS mount utility
   package:
-    pkg: nfs-common,nfs-kernel-server
+    pkg: nfs-kernel-server
     state: present
-  when: ansible_os_family == "Debian"
+  when: 
+    - ansible_os_family == "Debian"
+    - "'nfs-kernel-server' not int ansible_facts.packages"
 
 - name: Create NFS exports file 
   file: 
@@ -45,9 +54,10 @@
     state: restarted
     enabled: yes
   when: ansible_os_family == "RedHat"
- 
+
 - name: Install Docker 
   shell: curl https://get.docker.com |sudo bash
+  when: "'docker' not int ansible_facts.packages"
 
 - name: Start docker service 
   service: 
