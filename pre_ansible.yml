@@ -21,5 +21,8 @@
   - name: Install Python on redhat based
     raw: 'yum -y update && yum install -y python36'
     when: redhat_based.rc == 0
- 
+
+  - name: Set python3 as default on redhat based 
+    raw: 'alternatives --set python /usr/bin/python3'
+    when: redhat_based.rc == 0  
 

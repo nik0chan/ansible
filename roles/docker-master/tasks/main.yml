@@ -32,13 +32,20 @@
     dest: /etc/exports 
     line: "/srv/docker	{{NFS_NETWORK}}(rw,sync,no_subtree_check,sync)"    
 
-
-- name: Start NFS Server 
+- name: Start NFS Server [Debian based OS]
   service:
     name: nfs-kernel-server
     state: restarted
     enabled: yes
+  when: ansible_os_family == "Debian" 
 
+- name: Start NFS Server [Redhat based OS]
+  service: 
+    name: nfs-server
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+ 
 - name: Install Docker 
   shell: curl https://get.docker.com |sudo bash
 
