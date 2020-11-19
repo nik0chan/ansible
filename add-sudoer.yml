@@ -1,0 +1,29 @@
+#
+# Nicolás Mantilla Simón 
+# 
+# Asks for a user and a password and creates an user
+# gives super-powers to the user but doesn't allow exec 'su' command
+#
+- hosts: all
+  gather_facts: no
+  vars_prompt:
+  - name: "USERNAME"
+    prompt: "User? "
+    private: no
+
+  - name: "PASSWORD"
+    prompt: "Password? "
+    private: yes
+
+  tasks:
+    - name: "add user"
+      user:
+        name: "{{USERNAME}}"
+        update_password: always
+        password: "{{PASSWORD | password_hash('sha512')}}"
+
+    - name: "make user semi-god"
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        line: "{{USERNAME}}  ALL = ALL, !/bin/su"
