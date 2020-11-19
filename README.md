@@ -32,6 +32,20 @@ Sintax:
 ansible-playbook [-i hosts] deploy_autorized_key.yml --ask-pass --extra-vars='pubkey="/root/.ssh/id_rsa.pub"'
 ```
 
+add-sudoer  
+-----------
+
+Prompts for a user and password that will be added to targets a adds them to sudoers without being able to user 'su' command 
+
+Testest on: 
+- Centos 7 
+
+Sintax: 
+
+```
+ansible-playbook [-i hosts] add-sudoer.yml 
+```
+
 docker_master role
 ------------------
 
