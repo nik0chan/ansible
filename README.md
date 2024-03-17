@@ -64,8 +64,8 @@ ansible-playbook [-i hosts] docker-master.yml
 ```
 
 
-deploy-OCI
------------
+deploy-OCI.yml
+---------------
 Playbook for inicital configuration on Oracle Cloud Infraestructure instances 
 
 Actions performed: 
@@ -88,22 +88,30 @@ new_password
 
 Generate them with:
 
-ansible-vault encrypt_string <variable_password> --name <variable_name> 
+ansible-vault encrypt_string variable_password --name variable_name
 
 Then store them on playbook_deploy_OCI_vars.yml template 
 
 DON'T FORGET TO STORE YOUR PUBLIC KEY ON ssh/id_rsa.pub ! 
 
-Launch with: 
+Usage: 
 
 1st time (comma is needed!) 
 
-ansible-playbook playbook_deploy_OCI.yml -i <your OCI instance public IP>, -u ubuntu --ask-vault-pass
+ansible-playbook playbook_deploy_OCI.yml -i your_OCI_instance_public_IP, -u ubuntu --ask-vault-pass
 
 Next times 
 
- ansible-playbook playbook_deploy_OCI.yml -i <your OCI instance public IP>, -u <your-new-username> --ask-vault-pass --ask-become-pass
+ ansible-playbook playbook_deploy_OCI.yml -i your OCI instance public IP, -u your-new-username --ask-vault-pass --ask-become-pass
 
+
+deploy_docker.yml 
+------------------
+Installs docker on ubuntu 22.04 (ampere/amd micro) instances
+
+Usage: 
+
+ansible-playbook deploy_docker.yml -i your OCI instance -u your-admin-user --ask-become-pass 
 
 
 # NOTES 
