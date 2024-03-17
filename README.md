@@ -92,7 +92,7 @@ ansible-vault encrypt_string <variable_password> --name <variable_name>
 
 Then store them on playbook_deploy_OCI_vars.yml template 
 
-DON'T FORGET TO STORE YOUR PUBLIC KEY ON ssh/id_rsa.pub ! 
+DON'T FORGET TO STORE YOUR PUBLIC KEY ON files/id_rsa.pub ! 
 
 Launch with: 
 
