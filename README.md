@@ -64,6 +64,48 @@ ansible-playbook [-i hosts] docker-master.yml
 ```
 
 
+deploy-OCI
+-----------
+Playbook for inicital configuration on Oracle Cloud Infraestructure instances 
+
+Actions performed: 
+- Updates sources
+- Installs minimal software (cron,jq,bind9-host,mailutils)
+- Uploads Cloudflare update script 
+- Creates a update task for Cloudflare update script 
+- Creates own administrative user and configures ssh access with pki 
+- Deletes default ubuntu user on OCI instances 
+
+Variables needed:
+
+cloudflare_api_key          
+zone      
+cloudflare_auth_email
+notify_address
+cloudflare_dns_name
+new_username
+new_password
+
+Generate them with:
+
+ansible-vault encrypt_string <variable_password> --name <variable_name> 
+
+Then store them on playbook_deploy_OCI_vars.yml template 
+
+DON'T FORGET TO STORE YOUR PUBLIC KEY ON ssh/id_rsa.pub ! 
+
+Launch with: 
+
+1st time (comma is needed!) 
+
+ansible-playbook playbook_deploy_OCI.yml -i <your OCI instance public IP>, -u ubuntu --ask-vault-pass
+
+Next times 
+
+ ansible-playbook playbook_deploy_OCI.yml -i <your OCI instance public IP>, -u <your-new-username> --ask-vault-pass --ask-become-pass
+
+
+
 # NOTES 
 
 Deploying instances on Google Cloud Platfom 
