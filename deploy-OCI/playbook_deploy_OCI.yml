@@ -50,17 +50,17 @@
       ansible.builtin.copy:
         dest: /root/scripts/.secrets  
         content: |
-          zone=nik0chan.com
-          cloudflare_auth_email=nicolasmantillasimon@gmail.com
+          zone={{ zone }}
+          cloudflare_auth_email={{ cloudflare_auth_email }}
           cloudflare_auth_key={{ cloudflare_api_key }} 
-          notify_address=nicolasmantillasimon@gmail.com
+          notify_address={{ notify_address }}
         mode: '0600'
 
     - name: Creating update DNS schedule 
       ansible.builtin.cron:
         name: "Cloudflare update"  
         user: "root"
-        job: "/root/scripts/update-cloudflare-record.sh {{ cloudflare_dns_name }}"  
+        job: "/root/scripts/update-cloudflare-record.sh {{ ansible_hostname }}.{{ cloudflare_domain }}"  
         minute: "0"  
         hour: "*"  
         day: "*"  

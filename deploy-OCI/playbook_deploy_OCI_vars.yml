@@ -16,7 +16,7 @@ notify_address: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           << your hashed value, generate with: ansible-vault encrypt_string your_nofity_address_here --name nofity_address >> 
           
-cloudflare_dns_name: 
+cloudflare_domain: 
           << your machine DNS on cloudflare >> 
 new_username: !vault |
           $ANSIBLE_VAULT;1.1;AES256
