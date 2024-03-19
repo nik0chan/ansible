@@ -1,7 +1,7 @@
 ---
-- name: Parametrize OCI hosts
+- name: Parametrize OCI hosts 
   gather_facts: yes
-  hosts: all
+  hosts: all 
   become: yes
   become_method: sudo
 
@@ -9,9 +9,9 @@
     -  playbook_deploy_OCI_vars.yml
 
   tasks:
-    - name: Updating sources
+    - name: Updating sources 
       apt:
-        update_cache: yes
+        update_cache: yes 
       when: ansible_os_family == "Debian"
 
     - name: Preconfiguring mailutils
@@ -25,66 +25,79 @@
 
     - name: Installing software requirements
       ansible.builtin.package:
-        name:
+        name: 
           - cron
           - jq
-          - bind9-host
+          - bind9-host  
           - mailutils
-        state: latest
+        state: latest 
 
-    - name: Creating /root/scripts directory
+    - name: Creating /root/scripts directory 
       ansible.builtin.file:
         path: /root/scripts
         state: directory
-        mode: '0700'
+        mode: '0700'     
 
     - name: Uploading DNS update scripts
-      ansible.builtin.copy:
+      ansible.builtin.copy: 
         src: scripts/update-cloudflare-record.sh
-        dest: /root/scripts/update-cloudflare-record.sh
-        owner: root
+        dest: /root/scripts/update-cloudflare-record.sh 
+        owner: root 
         group: root
         mode: '0700'
-
+         
     - name: Createing secrets file
       ansible.builtin.copy:
-        dest: /root/scripts/.secrets
+        dest: /root/scripts/.secrets  
         content: |
           zone=nik0chan.com
           cloudflare_auth_email=nicolasmantillasimon@gmail.com
-          cloudflare_auth_key={{ cloudflare_api_key }}
+          cloudflare_auth_key={{ cloudflare_api_key }} 
           notify_address=nicolasmantillasimon@gmail.com
         mode: '0600'
 
-    - name: Creating update DNS schedule
+    - name: Creating update DNS schedule 
       ansible.builtin.cron:
-        name: "Cloudflare update"
+        name: "Cloudflare update"  
         user: "root"
-        job: "/root/scripts/update-cloudflare-record.sh {{ cloudflare_dns_name }}"
-        minute: "0"
-        hour: "*"
-        day: "*"
-        month: "*"
-        weekday: "*"
-
-    - name: Adding custom user
+        job: "/root/scripts/update-cloudflare-record.sh {{ cloudflare_dns_name }}"  
+        minute: "0"  
+        hour: "*"  
+        day: "*"  
+        month: "*"  
+        weekday: "*"         
+ 
+    - name: Adding custom user 
       ansible.builtin.user:
         name: "{{ new_username }}"
         comment: Alternative administrator
-        groups: sudo
+        groups: sudo 
         state: present
-        password: "{{ new_password | string | password_hash('sha512') }}"
+        shell: "/bin/bash" 
+        password: "{{ new_password | string | password_hash('sha512') }}"  
+
+    - name: Remove ubuntu user limitation 
+      ansible.builtin.lineinfile: 
+        path: /root/.ssh/authorized_keys
+        regexp: "^no-port-forwarding"
+        state: absent
 
     - name: Configuring new user ssh access
       ansible.builtin.authorized_key:
         user: "{{ new_username }}"
         state: present
         key: "{{ lookup('file', 'files/id_rsa.pub') }}"
+    
+    - name: Configuring root ssh access
+      ansible.builtin.authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', 'files/id_rsa.pub') }}"
 
     - name: Removing ubuntu default user
       ansible.builtin.user:
-        name: ubuntu
-        state: absent
-        force: true
-        ignore_errors: true
-...
+        name: ubuntu 
+        state: absent     
+        force: true  
+      ignore_errors: true  
+...   
