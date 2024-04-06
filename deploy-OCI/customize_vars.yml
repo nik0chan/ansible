@@ -1,0 +1,3 @@
+font_url: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
+font_dir: "{{ ansible_env.HOME }}/.local/share/fonts"
+custom_zsh_dir: "{{ ansible_env.HOME }}/.oh-my-zsh/custom"

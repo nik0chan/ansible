@@ -1,0 +1,19 @@
+cloudflare_api_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+
+zone: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+
+cloudflare_auth_email: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+
+notify_address: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+
+cloudflare_domain: <your-domain>         
+
+new_username: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+
+new_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256

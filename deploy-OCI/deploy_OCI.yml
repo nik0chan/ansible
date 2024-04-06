@@ -1,0 +1,241 @@
+---
+- name: Parametrize OCI hosts 
+  gather_facts: yes
+  hosts: all 
+  become: yes
+  become_method: sudo
+
+  vars_files:
+    -  deploy_OCI_vars.yml
+    -  customize_vars.yml
+
+  tasks:
+    - name: Stoping resolv service
+      ansible.builtin.service: 
+        name: systemd-resolved
+        state: stopped
+
+    - name: Disabling resolv service 
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        masked: yes
+        state: stopped
+
+    - name: Configuring /etc/resolv.conf
+      ansible.builtin.copy:
+        dest: /etc/resolv.conf
+        content: |
+          nameserver 1.1.1.1
+          nameserver 8.8.8.8
+        owner: root
+        group: root
+        mode: '0644'
+    
+    - name: Updating sources 
+      apt:
+        update_cache: yes 
+      when: ansible_os_family == "Debian"
+
+    - name: Preconfiguring mailutils
+      ansible.builtin.debconf:
+        name: mailutils
+        question: '{{ item.question }}'
+        value: '{{ item.value }}'
+        vtype: '{{ item.vtype }}'
+      loop:
+        - { question: 'mailutils/configuration-type', value: 'Local only', vtype: 'select' }
+
+    - name: Installing software requirements
+      ansible.builtin.package:
+        name: 
+          - cron
+          - jq
+          - bind9-host
+          - bind9-dnsutils
+          - mailutils
+          - tcpdump 
+          - curl
+          - build-essential 
+          - libssl-dev 
+          - zlib1g-dev 
+          - traceroute
+          - iputils-ping 
+          - rsyslog 
+          - zsh
+          - fontconfig  
+          - git
+          - rsyslog  
+          - screen
+          - unzip
+          - vim  
+        state: latest 
+    
+    - name: Asegurar que el archivo de configuración de rsyslog para iptables existe
+      copy:
+        dest: /etc/rsyslog.d/iptables.conf
+        content: |
+           ':msg,contains,"IPTables-INPUT-Dropped":  /var/log/iptables.log
+           & stop'
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reloading rsyslog 
+      ansible.builtin.service: 
+        name: rsyslog
+        state: restarted
+
+    - name: Creating /root/scripts directory 
+      ansible.builtin.file:
+        path: /root/scripts
+        state: directory
+        mode: '0700'     
+
+    - name: Uploading DNS update scripts
+      ansible.builtin.copy: 
+        src: scripts/update-cloudflare-record.sh
+        dest: /root/scripts/update-cloudflare-record.sh 
+        owner: root 
+        group: root
+        mode: '0700'
+         
+    - name: Createing secrets file
+      ansible.builtin.copy:
+        dest: /root/scripts/.secrets  
+        content: |
+          zone={{ zone }}
+          cloudflare_auth_email=nicolasmantillasimon@gmail.com
+          cloudflare_auth_key={{ cloudflare_api_key }} 
+          notify_address=nicolasmantillasimon@gmail.com
+        mode: '0600'
+
+    - name: Creating update DNS schedule 
+      ansible.builtin.cron:
+        name: "Cloudflare update"  
+        user: "root"
+        job: "/root/scripts/update-cloudflare-record.sh {{ ansible_hostname }}.{{ cloudflare_domain }}"  
+        minute: "0"  
+        hour: "*"  
+        day: "*"  
+        month: "*"  
+        weekday: "*"
+
+    - name: Forcing update DNS record 
+      shell: sh -c "/root/scripts/update-cloudflare-record.sh {{ ansible_hostname }}.{{ cloudflare_domain }}"
+      ignore_errors: true 
+
+    - name: Adding custom user 
+      ansible.builtin.user:
+        name: "{{ new_username }}"
+        comment: Alternative administrator
+        groups: sudo 
+        state: present
+        shell: "/bin/bash" 
+        password: "{{ new_password | string | password_hash('sha512') }}"  
+
+    - name: Remove ubuntu user limitation 
+      ansible.builtin.lineinfile: 
+        path: /root/.ssh/authorized_keys
+        regexp: "^no-port-forwarding"
+        state: absent
+
+    - name: Configuring new user ssh access
+      ansible.builtin.authorized_key:
+        user: "{{ new_username }}"
+        state: present
+        key: "{{ lookup('file', 'files/id_rsa.pub') }}"
+    
+    - name: Configuring root ssh access
+      ansible.builtin.authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', 'files/id_rsa.pub') }}"
+
+    - name: Install Oh My Zsh
+      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
+      args:
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      become_user: "{{ ansible_env.USER }}"
+
+    - name: Install Powerlevel10k theme
+      git:
+        repo: https://github.com/romkatv/powerlevel10k.git
+        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        depth: 1
+      become_user: "{{ ansible_env.USER }}"
+
+    - name: Download and install CascadiaCode font
+      block:
+        - name: Create font directory
+          file:
+            path: "{{ font_dir }}"
+            state: directory
+            mode: '0755'
+          become_user: "{{ ansible_env.USER }}"
+
+        - name: Download CascadiaCode Nerd Font
+          get_url:
+            url: "{{ font_url }}"
+            dest: "/tmp/CascadiaCodeNF.zip"
+
+        - name: Unzip CascadiaCode Nerd Font to font directory
+          unarchive:
+            src: "/tmp/CascadiaCodeNF.zip"
+            dest: "{{ font_dir }}"
+            remote_src: yes
+            creates: "{{ font_dir }}/Cascadia Code Regular Nerd Font Complete.ttf"
+          become_user: "{{ ansible_env.USER }}"
+
+        - name: Update font cache
+          shell: fc-cache -fv
+          become_user: "{{ ansible_env.USER }}"
+
+    - name: Install zsh plugins (syntax highlighting, autosuggestions)
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/{{ item.dest }}"
+        depth: 1
+      loop:
+        - { repo: 'https://github.com/zsh-users/zsh-syntax-highlighting.git', dest: 'zsh-syntax-highlighting' }
+        - { repo: 'https://github.com/zsh-users/zsh-autosuggestions', dest: 'zsh-autosuggestions' }
+      become_user: "{{ ansible_env.USER }}"
+
+    - name: Configure zshrc, p10k.zsh, and vimrc
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+      loop:
+        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/zshrc', dest: '.zshrc' }
+        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/p10k.zsh', dest: '.p10k.zsh' }
+        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/vimrc', dest: '.vimrc' }
+      become_user: "{{ ansible_env.USER }}"
+
+    - name: Set zsh as default shell
+      user:
+        name: "{{ ansible_env.USER }}"
+        shell: "/usr/bin/zsh"
+
+    - name: Creating /root/scripts directory 
+      ansible.builtin.file:
+        path: /root/scripts
+        state: directory
+        mode: '0700'     
+
+    - name: Uploading Firewall setup script
+      ansible.builtin.copy: 
+        src: scripts/firewall.sh
+        dest: /root/scripts/firewall.sh 
+        owner: root 
+        group: root
+        mode: '0700'
+    
+    - name: Forcing load firewall configuration         
+      ansible.builtin.shell: /root/scripts/firewall.sh 
+      ignore_errors: true                                  
+
+    - name: Removing ubuntu default user
+      ansible.builtin.user:
+        name: ubuntu 
+        state: absent     
+        force: true  
+      ignore_errors: true 
