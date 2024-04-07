@@ -48,26 +48,27 @@
     - name: Installing software requirements
       ansible.builtin.package:
         name: 
-          - cron
-          - jq
-          - bind9-host
+          - build-essential 
           - bind9-dnsutils
+          - bind9-host
+          - cron
+          - curl
+          - duf
+          - fontconfig  
+          - git
+          - jq
           - mailutils
           - tcpdump 
-          - curl
-          - build-essential 
           - libssl-dev 
-          - zlib1g-dev 
           - traceroute
           - iputils-ping 
           - rsyslog 
-          - zsh
-          - fontconfig  
-          - git
           - rsyslog  
           - screen
           - unzip
           - vim  
+          - zlib1g-dev 
+          - zsh
         state: latest 
     
     - name: Asegurar que el archivo de configuración de rsyslog para iptables existe
@@ -103,7 +104,7 @@
       ansible.builtin.copy:
         dest: /root/scripts/.secrets  
         content: |
-          zone={{ zone }}
+          zone=nik0chan.com
           cloudflare_auth_email=nicolasmantillasimon@gmail.com
           cloudflare_auth_key={{ cloudflare_api_key }} 
           notify_address=nicolasmantillasimon@gmail.com
@@ -117,7 +118,7 @@
         minute: "0"  
         hour: "*"  
         day: "*"  
-        month: "*"  
+        month: "*"    
         weekday: "*"
 
     - name: Forcing update DNS record 
@@ -154,24 +155,24 @@
     - name: Install Oh My Zsh
       shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended"
       args:
-        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
-      become_user: "{{ ansible_env.USER }}"
+        creates: "/home/{{ new_username }}/.oh-my-zsh"
+      become_user: "{{ new_username }}"
 
     - name: Install Powerlevel10k theme
       git:
         repo: https://github.com/romkatv/powerlevel10k.git
-        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        dest: "/home/{{ new_username }}/.oh-my-zsh/custom/themes/powerlevel10k"
         depth: 1
-      become_user: "{{ ansible_env.USER }}"
+      become_user: "{{ new_username }}"
 
     - name: Download and install CascadiaCode font
       block:
         - name: Create font directory
           file:
-            path: "{{ font_dir }}"
+            path: "/home/{{ new_username }}/{{ font_dir }}"
             state: directory
             mode: '0755'
-          become_user: "{{ ansible_env.USER }}"
+          become_user: "{{ new_username }}"
 
         - name: Download CascadiaCode Nerd Font
           get_url:
@@ -181,39 +182,59 @@
         - name: Unzip CascadiaCode Nerd Font to font directory
           unarchive:
             src: "/tmp/CascadiaCodeNF.zip"
-            dest: "{{ font_dir }}"
+            dest: "/home/{{ new_username }}/{{ font_dir }}"
             remote_src: yes
-            creates: "{{ font_dir }}/Cascadia Code Regular Nerd Font Complete.ttf"
-          become_user: "{{ ansible_env.USER }}"
+            creates: "/home/{{ new_username }}/{{ font_dir }}/Cascadia Code Regular Nerd Font Complete.ttf"
+          become_user: "{{ new_username }}"
 
         - name: Update font cache
           shell: fc-cache -fv
-          become_user: "{{ ansible_env.USER }}"
+          become_user: "{{ new_username }}"
 
     - name: Install zsh plugins (syntax highlighting, autosuggestions)
       git:
         repo: "{{ item.repo }}"
-        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/{{ item.dest }}"
+        dest: "/home/{{ new_username }}/.oh-my-zsh/custom/plugins/{{ item.dest }}"
         depth: 1
       loop:
         - { repo: 'https://github.com/zsh-users/zsh-syntax-highlighting.git', dest: 'zsh-syntax-highlighting' }
         - { repo: 'https://github.com/zsh-users/zsh-autosuggestions', dest: 'zsh-autosuggestions' }
-      become_user: "{{ ansible_env.USER }}"
+      become_user: "{{ new_username }}"
 
-    - name: Configure zshrc, p10k.zsh, and vimrc
-      get_url:
-        url: "{{ item.url }}"
-        dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+    - name: Configure zshrc
+      copy:
+        src: "files/{{ item.customization_file }}"
+        dest: "/home/{{ new_username}}/.{{ item.customization_file }}"
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
+        mode: '0664'
       loop:
-        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/zshrc', dest: '.zshrc' }
-        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/p10k.zsh', dest: '.p10k.zsh' }
-        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/vimrc', dest: '.vimrc' }
-      become_user: "{{ ansible_env.USER }}"
+        - { customization_file: 'zshrc' }    
+        - { customization_file: 'p10k.zsh' }    
+        - { customization_file: 'vimrc' }   
+
+          #    - name: Configure zshrc, p10k.zsh, and vimrc
+          #      get_url:
+          #        url: "{{ item.url }}"
+          #        dest: "/home/{{ new_username }}/{{ item.dest }}"
+          #      loop:
+        #        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/zshrc', dest: '.zshrc' }
+        #        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/p10k.zsh', dest: '.p10k.zsh' }
+        #        - { url: 'https://raw.githubusercontent.com/nik0chan/customiza/main/vimrc', dest: '.vimrc' }
+        #      become_user: "{{ new_username }}"
 
     - name: Set zsh as default shell
       user:
-        name: "{{ ansible_env.USER }}"
+        name: "{{ new_username }}"
         shell: "/usr/bin/zsh"
+   
+    - name: Uploading Screen config
+      ansible.builtin.copy: 
+        src: files/screenrc
+        dest: "/home/{{ new_username }}/.screenrc"
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
+        mode: '0660'
 
     - name: Creating /root/scripts directory 
       ansible.builtin.file:

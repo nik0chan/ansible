@@ -66,15 +66,18 @@ ansible-playbook [-i hosts] docker-master.yml
 
 deploy-OCI.yml
 ---------------
-Playbook for inicital configuration on Oracle Cloud Infraestructure instances 
+Playbook for initital configuration on Oracle Cloud Infraestructure instances 
 
 Actions performed: 
 - Updates sources
-- Installs minimal software (cron,jq,bind9-host,mailutils)
+- Installs minimal software (cron,jq,bind9-host,mailutils,etc...)
 - Uploads Cloudflare update script 
 - Creates a update task for Cloudflare update script 
+- Uploads Firewall iptables update scripts
+- Creates a update task for firewall update (vpn dynamic access) 
 - Creates own administrative user and configures ssh access with pki 
 - Deletes default ubuntu user on OCI instances 
+- Install some CLI visuals (zsh, ohmysh, p10k,...) 
 
 Variables needed:
 
@@ -98,11 +101,11 @@ Usage:
 
 1st time (comma is needed!) 
 
-ansible-playbook playbook_deploy_OCI.yml -i your_OCI_instance_public_IP, -u ubuntu --ask-vault-pass
+ansible-playbook deploy_OCI.yml -i your_OCI_instance_public_IP, -u ubuntu --ask-vault-pass 
 
 Next times 
 
- ansible-playbook playbook_deploy_OCI.yml -i your OCI instance public IP, -u your-new-username --ask-vault-pass --ask-become-pass
+ansible-playbook deploy_OCI.yml -i your OCI instance public IP, -u your-new-username --ask-vault-pass --ask-become-pass
 
 
 deploy_docker.yml 
@@ -113,16 +116,4 @@ Usage:
 
 ansible-playbook deploy_docker.yml -i your OCI instance -u your-admin-user --ask-become-pass 
 
-
-# NOTES 
-
-Deploying instances on Google Cloud Platfom 
-
-It's preferable to add public key on "Metadata -> SSH Keys" of your Google Cloud Plattofm to avoid password prompt in favour 
-of  automatization 
-
-Due to ssh daemon configuration on CentOS to connect remotely it's necessary to add the next lines on 
-"Administration, security, disc, networks, owner" > Init command Sequence " during instance creation.  
-
-sed -i 's/PermitRootLogin no/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && service sshd reload  
 
